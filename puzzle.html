@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>PUZLE</title>
+    <script type="text/javascript">
+
+        //BREAK POINT EN LA LINEA 25 PARA VER EL GENERADO DEL PUZLE PIEZA A PIEZA
+        
+        var carpetaImagenes = "imagenes/";  //Ruta de las imagenes
+        var imagenes = new Array();         //Array donde se guardan las imagenes
+        var imgBlanco= "blanco.gif";
+        
+        var timeIni;
+        var timeEnd;
+        
+        
+        //Mezcla el puzle como lo haria una persona, pieza a pieza.
+        function meclarPuzle(n){
+            var huecoId = "";
+            var imgs = document.getElementsByTagName("img");
+            
+            document.getElementById("p1").innerHTML = "";//Limpiar mensaje de la pantalla
+            
+            for(var e=0; e<n; e++){
+                for(var i=0; i<imgs.length; i++){
+                    huecoId = imgs[i].getAttribute("id");
+                    if(isVoid(huecoId)){
+                        break;
+                    }
+                }
+                if(isEsquina(huecoId)){
+                    moveAesquina(huecoId);
+                }if(isArista(huecoId)){
+                    moveAarista(huecoId);
+                }if(isCentro(huecoId)){
+                    moveAcentro(huecoId);
+                }
+            }
+            
+        }
+        
+        
+        //Crea una tabla dentro de un div con id=tabla
+        function creaTabla(rows, cols){
+            var eTabla = document.getElementById("tabla");
+
+            if(document.getElementById("tabla1")==null){
+                var oTable = document.createElement("table");
+                oTable.setAttribute("id", "tabla1");
+
+                var idCounter=0;
+                for(var i=0; i<rows; i++){//Crea las filas
+                    var oRow = document.createElement("tr");
+
+
+                    for(var c=0; c<cols; c++){//Crea las columnas para cada fila y el combobox
+                        var oCol = document.createElement("td");
+                        oCol.setAttribute("id", "td"+idCounter);
+                        oCol.setAttribute("onclick", "checkCelda(this)");
+
+                        var oImg = document.createElement("img");
+                        oImg.setAttribute("id", "img"+idCounter);
+                        oImg.setAttribute("src", imagenes[idCounter]);
+                        oImg.setAttribute("height", 100);
+                        oImg.setAttribute("width", 100);
+                        idCounter++;
+
+                        //document.getElementById("genera").setAttribute("disabled", true),
+
+                        oCol.appendChild(oImg);
+                        oRow.appendChild(oCol);
+
+                    }
+                    oTable.appendChild(oRow);
+                }
+                eTabla.appendChild(oTable);
+            }else{
+                for(var c=0; c<imagenes.length; c++){//Cambia las imagenes
+                    var oImg = document.getElementById("img"+c);
+                    oImg.setAttribute("src", imagenes[c]);
+                }
+            }
+        }//FIN creaTabla()
+        
+        
+        //Genera un puzzle ordenadamente y lo mezcla.
+        function genera(n){
+            imagenes = rellenaArray();
+            imagenes[imagenes.length]=carpetaImagenes+imgBlanco;
+            
+            creaTabla(4, 4);
+            meclarPuzle(n);
+            
+            timeIni = new Date().getTime();
+        }
+        
+        
+        //Rellena un array con imagenes y lo devuelve.
+        function rellenaArray(){
+            var array = new Array();
+            for(var i=0; i<15; i++){
+                array[i]=carpetaImagenes+(i+1)+".gif";
+            }
+            return array;
+        }
+        
+        
+        
+        //Devuelve TRUE si el imgId pertenece a una de las cuatro esquinas.
+        function isEsquina(imgId){
+            var esquinas = [0,3,12,15];
+            for(var i=0; i<esquinas.length;i++){
+                var id = "img"+esquinas[i];
+                if(imgId == id){
+                    return true
+                }
+            }
+            return false;
+        }        
+        //Devuelve TRUE si el imgId pertenece a una de las ocho aristas.
+        function isArista(imgId){
+            var aristas = [1,2,4,7,8,11,13,14];
+            for(var i=0; i<aristas.length;i++){
+                var id = "img"+aristas[i];
+                if(imgId == id){
+                    return true
+                }
+            }
+            return false;
+        }
+        //Devuelve TRUE si el imgId pertenece a una de las cuatro piezas centrales.
+        function isCentro(imgId){
+            var centros = [5,6,9,10];
+            for(var i=0; i<centros.length;i++){
+                var id = "img"+centros[i];
+                if(imgId == id){
+                    return true
+                }
+            }
+            return false;
+        }
+        
+        
+        
+        //---Funciones llamadas por el usuario para resolver el puzle.
+        //Mueve una esquina con id=imgId si es posible.
+        function moveEsquina(imgId){
+            var v = imgId.split("g");
+            var nId = parseInt(v[1]);
+            
+            switch(imgId){
+                case "img0":
+                    if(isVoid("img1")){
+                        mueve(imgId, nId+1);
+                    }if(isVoid("img4")){
+                        mueve(imgId, nId+4);
+                    }
+                    break;
+                case "img3":
+                    if(isVoid("img2")){
+                        mueve(imgId, nId-1);
+                    }if(isVoid("img7")){
+                        mueve(imgId, nId+4);
+                    }
+                    break;
+                case "img12":
+                    if(isVoid("img8")){
+                       mueve(imgId, nId-4);
+                    }if(isVoid("img13")){
+                        mueve(imgId, nId+1);
+                    }
+                    break;
+                case "img15":
+                    if(isVoid("img11")){
+                        mueve(imgId, nId-4);
+                    }if(isVoid("img14")){
+                        mueve(imgId, nId-1);
+                    }
+                    break;
+            }
+        }
+        //Mueve una arista con id=imgId si es posible.
+        function moveArista(imgId){
+            var v = imgId.split("g");
+            var nId = parseInt(v[1]);
+            
+            
+            if((imgId=="img1")||(imgId=="img2")){//Aristas superiores
+                if(isVoid("img"+(nId-1))){
+                    mueve(imgId, nId-1);
+                }if(isVoid("img"+(nId+4))){
+                     mueve(imgId, nId+4);
+                }if(isVoid("img"+(nId+1))){
+                     mueve(imgId, nId+1);
+                }
+            }if((imgId=="img13")||(imgId=="img14")){//Aristas inferiores
+                if(isVoid("img"+(nId-1))){
+                    mueve(imgId, nId-1);
+                }if(isVoid("img"+(nId-4))){
+                    mueve(imgId, nId-4);
+                }if(isVoid("img"+(nId+1))){
+                    mueve(imgId, nId+1);
+                }
+            }if((imgId=="img4")||(imgId=="img8")){//Aristas izquierdas
+                if(isVoid("img"+(nId+4))){
+                    mueve(imgId, nId+4);
+                }if(isVoid("img"+(nId-4))){
+                    mueve(imgId, nId-4);
+                }if(isVoid("img"+(nId+1))){
+                    mueve(imgId, nId+1);
+                }
+            }if((imgId=="img7")||(imgId=="img11")){//Aristas derechas
+                if(isVoid("img"+(nId+4))){
+                    mueve(imgId, nId+4);
+                }if(isVoid("img"+(nId-4))){
+                    mueve(imgId, nId-4);
+                }if(isVoid("img"+(nId-1))){
+                    mueve(imgId, nId-1);
+                }
+            }
+        }
+        //Mueve una pieza central con id=imgId si es posible.
+        function moveCentro(imgId){
+            var v = imgId.split("g");
+            var nId = parseInt(v[1]);
+            
+            var idNext = nId+1;
+            var idBack = nId-1;
+            var idUp = nId-4;
+            var idDown = nId+4;
+            
+            var direcciones = [idNext, idBack, idDown, idUp];
+            
+            for(var i=0; i<direcciones.length; i++){
+                if(isVoid("img"+direcciones[i])){
+                    mueve(imgId, direcciones[i]);
+                }
+            }
+        }
+        //---
+        
+        
+        
+        //Ultimo id al que se ha movido una pieza, se guarda para no tocar esa misma pieza en el siguiente movimiento.
+        var lastId="img15";
+        
+        //---Funciones llamadas automaticamente para mezclar el puzle.
+        //Mueve a una esquina ,con id=imgId, una de sus dos piezas adyacentes, no mueve una pieza que ya ha sido movida en el turno anterior.
+        function moveAesquina(imgId){
+            var v = imgId.split("g");
+            var idDestino = parseInt(v[1]);
+            
+            var nRandom = Math.floor(Math.random() * 2);
+            var ids = new Array();
+            var idOrigen = 0;
+            
+            switch(imgId){
+                case "img0":
+                    ids = [1, 4];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img3":
+                    ids = [2, 7];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img12":
+                    ids = [8, 13];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img15":
+                    ids = [11, 14];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+            }
+            if(idOrigen == lastId){
+                for(var i=0; i<ids.length; i++){
+                    if(idOrigen == lastId){
+                        idOrigen = "img"+ids[i];
+                    }
+                }
+            }
+            mueve(idOrigen, idDestino);
+            lastId = "img"+idDestino;
+        }
+        //Mueve a una arista ,con id=imgId, una de sus tres piezas adyacentes, no mueve una pieza que ya ha sido movida en el turno anterior.
+        function moveAarista(imgId){
+            var v = imgId.split("g");
+            var idDestino = parseInt(v[1]);
+            
+            var nRandom = Math.floor(Math.random() * 3);
+            var ids = new Array();
+            var idOrigen = 0;
+            
+            switch(imgId){
+                //Aristas superiores
+                case "img1":
+                    ids = [0, 2, 5];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img2":
+                    ids = [1, 3, 6];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                    
+                //Aristas inferiores
+                case "img13":
+                    ids = [9, 12, 14];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img14":
+                    ids = [10, 13, 15];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                    
+                //Aristas izquierdas
+                case "img4":
+                    ids = [0, 5, 8];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img8":
+                    ids = [4, 9, 12];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                    
+                //Aristas derechas
+                case "img7":
+                    ids = [3, 6, 11];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                case "img11":
+                    ids = [7, 10, 15];
+                    idOrigen = "img"+ids[nRandom];
+                    break;
+                
+            }
+            if(idOrigen == lastId){
+                for(var i=0; i<ids.length; i++){
+                    if(idOrigen == lastId){
+                        idOrigen = "img"+ids[i];
+                    }
+                }
+            }
+            mueve(idOrigen, idDestino);
+            lastId = "img"+idDestino;
+        }
+        //Mueve a un hueco central ,con id=imgId, una de sus cuatro piezas adyacentes, no mueve una pieza que ya ha sido movida en el turno anterior.
+        function moveAcentro(imgId){
+            var v = imgId.split("g");
+            var idDestino = parseInt(v[1]);
+            
+            var nRandom = Math.floor(Math.random() * 4);
+            var ids = [idDestino+1, idDestino-1, idDestino+4, idDestino-4];
+            var idOrigen = "img"+ids[nRandom];
+            
+            if(idOrigen == lastId){
+                for(var i=0; i<ids.length; i++){
+                    if(idOrigen == lastId){
+                        idOrigen = "img"+ids[i];
+                    }
+                }
+            }
+            mueve(idOrigen, idDestino);
+            lastId = "img"+idDestino;
+        }
+        //---
+        
+        
+        //El imgId es el ID del elemento de origen, nId es el NUMERO de id de destino
+        function mueve(imgId, nId){
+            var oldElement = document.getElementById(imgId);
+            var src = oldElement.getAttribute("src");
+            document.getElementById("img"+(nId)).setAttribute("src", src);
+            oldElement.setAttribute("src", carpetaImagenes+imgBlanco);
+        }
+        
+        //Devuelve TRUE si el src de la imagen con imgId es imgBlanco
+        function isVoid(imgId){
+            var src = document.getElementById(imgId).getAttribute("src");
+            if(src == carpetaImagenes+imgBlanco){
+                return true;
+            }
+            return false;
+        }
+        
+        
+        //Devuelve TRUE si el puzle esta resuelto
+        function checkPuzzle(){
+            var a_imgs = document.getElementsByTagName("img");
+            for(var i=1; i<=15; i++){
+                var src = a_imgs[i-1].getAttribute("src");
+                if(src != (carpetaImagenes+i+".gif")){
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        //onClick, comprueba la celda y el tipo(esquina, arista, centro). Llama a checkPuzzle()
+        function checkCelda(td){
+            var a_imgs = td.getElementsByTagName("img");
+            var src = a_imgs[0].getAttribute("src");
+            if(src != carpetaImagenes+imgBlanco){
+                var id = a_imgs[0].getAttribute("id");
+                if(isEsquina(id)){
+                    moveEsquina(id);
+                }if(isArista(id)){
+                    moveArista(id);
+                }if(isCentro(id)){
+                    moveCentro(id);
+                }
+                var terminado = checkPuzzle();
+                if(terminado){
+                    timeEnd = new Date().getTime();
+                    var time = timeEnd - timeIni;
+                    time = new Date(time);
+                    var minutos = time.getMinutes();
+                    var segundos = time.getSeconds();
+                    
+                    var mensaje = document.getElementById("p1");
+                    switch(minutos){
+                        case 0:
+                            mensaje.innerHTML = "Has terminado en "+segundos.toString()+" segundos.";
+                            break;
+                        case 1:
+                            mensaje.innerHTML = "Has terminado en " + minutos.toString()+" minuto y "+segundos.toString()+" segundos.";
+                            break;
+                        default:
+                            mensaje.innerHTML = "Has terminado en " + minutos.toString()+" minutos y "+segundos.toString()+" segundos.";
+                            break;
+                    }
+                }
+            }
+        }
+        //#484848;
+    </script>
+</head>
+
+<body>
+    <style>
+        *{box-sizing: border-box;}
+        body{
+            background-color: #315a22;
+        }
+        
+        input{
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            
+            background-color: #484848;
+            border: 2px solid black;
+            width: 100px;
+            height: 100px;
+        }
+        #genera2{margin: 0px 63px;}
+        
+        #botones{width: 454px;}
+        
+        
+        #tabla1{
+            border: 2px solid #262626;
+            background-color: #262626;
+        }
+        tr, td {
+            padding: 5px;
+            background-color: #484848;
+        }
+        
+        #p1{
+            font-size: 24px;
+            font-weight: bold;
+            color: #bfbfbf;
+            
+            background-color: #292929;
+            display: inline-block;
+            padding: 0px 10px;
+        }
+        
+    </style>
+    <center>
+        <div id="botones">
+            <input id="genera1" type="button" value="FÁCIL" onclick="genera(10)">
+            <input id="genera2" type="button" value="NORMAL" onclick="genera(25)">
+            <input id="genera3" type="button" value="DIFÍCIL" onclick="genera(80)">
+        </div>
+    </center>
+    <br>
+    <center><div id=tabla></div></center>
+    <br>
+    <center><p id="p1"></p></center>
+    
+</body>
+</html>
